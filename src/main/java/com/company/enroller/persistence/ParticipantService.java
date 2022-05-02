@@ -25,27 +25,28 @@ public class ParticipantService {
 
 	public Participant findByLogin(String login) {
 		return (Participant) connector.getSession().get(Participant.class, login);
-//		String hql = "FROM Participant where login = " + login; to mi nie działa - spradzic dlaczego
-//		Query query = connector.getSession().createQuery(hql);
-//		return (Participant) query.getSingleResult();
 	}
 
-	public void addParticipant(Participant participant) {
+	public Participant addParticipant(Participant participant) {
 		Transaction transaction = connector.getSession().beginTransaction();
 		connector.getSession().save(participant);
 		transaction.commit();
+		return (Participant) connector.getSession().get(Participant.class, participant.getLogin());
 	}
 
-	public void deleteParticipant(Participant participant) {
+	public Participant deleteParticipant(Participant participant) {
 		Transaction transaction = connector.getSession().beginTransaction();
 		connector.getSession().delete(participant);
 		transaction.commit();
+		return (Participant) connector.getSession().get(Participant.class, participant.getLogin());
+
 	}
 
-	public void updateParticipant(Participant participant, String password) {
+	public Participant updateParticipant(Participant participant, String password) {
 		participant.setPassword(password);
 		Transaction transaction = connector.getSession().beginTransaction();
 		connector.getSession().update(participant);
 		transaction.commit();
+		return (Participant) connector.getSession().get(Participant.class, participant.getLogin());
 	}
 }
