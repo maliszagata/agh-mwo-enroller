@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/meetings")
@@ -17,6 +18,8 @@ public class MeetingRestController {
 
 	@Autowired
 	MeetingService meetingService;
+	@Autowired
+	ParticipantService participantService;
 
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	public ResponseEntity<?> getMeetings() {
@@ -25,7 +28,7 @@ public class MeetingRestController {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	public ResponseEntity<?> getParticipant(@PathVariable("id") long id) {
+	public ResponseEntity<?> getMeeting(@PathVariable("id") long id) {
 		Meeting meeting = meetingService.findById(id);
 		if (meeting == null) {
 			return new ResponseEntity<String>("Meeting " + id + " not found.", HttpStatus.NOT_FOUND);
@@ -55,15 +58,43 @@ public class MeetingRestController {
 		return new ResponseEntity<Meeting>(foundMeeting, HttpStatus.OK);
 	}
 
-//	@RequestMapping(value = "", method = RequestMethod.PUT)
-//	public ResponseEntity<?> updateParticipant(@RequestBody Participant participant) {
-//		Participant foundParticipant = participantService.findByLogin(participant.getLogin());
-//		if (foundParticipant == null) {
-//			return new ResponseEntity<String>("Unable to update. User " + participant.getLogin() + " not found.",
-//					HttpStatus.NOT_FOUND);
-//		}
-//		participantService.updateParticipant(foundParticipant, participant.getPassword());
-//		return new ResponseEntity<Participant>(participant, HttpStatus.OK);
-//	}
+	@RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+	public ResponseEntity<?> addParticipant(@PathVariable("id") long id, @RequestBody Participant participant) {
+
+		Participant foundParticipant = participantService.findByLogin(participant.getLogin());
+
+		if (foundParticipant == null) {
+			return new ResponseEntity<String>("Unable to update. User " + participant.getLogin()
+					+ " not found.",
+					HttpStatus.NOT_FOUND);
+		}
+
+		Meeting meeting = meetingService.findById(id);
+
+		List<String> participantsLogins = meeting.getParticipants().stream().map(Participant::getLogin).toList();
+		if (participantsLogins.contains(foundParticipant.getLogin())) {
+			return new ResponseEntity<String>("Unable to update. User " + participant.getLogin()
+					+ " already participate in this meeting.",
+					HttpStatus.CONFLICT);
+		}
+
+		meetingService.addParticipant(meeting, participant);
+		return new ResponseEntity<Meeting>(meeting, HttpStatus.OK);
+	}
+
+	@RequestMapping(value = "/{id}/participants", method = RequestMethod.GET)
+	public ResponseEntity<?> getParticipants(@PathVariable("id") long id) {
+
+		Meeting meeting = meetingService.findById(id);
+		Collection<Participant> participants = meeting.getParticipants();
+
+		if (participants.isEmpty()) {
+			return new ResponseEntity<String>("Meeting " + meeting.getId()
+					+ " has no participants.",
+					HttpStatus.NOT_FOUND);
+		}
+
+		return new ResponseEntity<Collection<Participant>>(participants, HttpStatus.OK);
+	}
 
 }

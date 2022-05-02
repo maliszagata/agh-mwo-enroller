@@ -39,4 +39,12 @@ public class MeetingService {
 		connector.getSession().delete(meeting);
 		transaction.commit();
 	}
+
+	public void addParticipant(Meeting meeting, Participant participant) {
+		meeting.addParticipant(participant);
+		Transaction transaction = connector.getSession().beginTransaction();
+		connector.getSession().update(meeting);
+		transaction.commit();
+	}
+
 }

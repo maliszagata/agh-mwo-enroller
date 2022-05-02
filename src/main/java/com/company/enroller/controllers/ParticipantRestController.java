@@ -32,7 +32,7 @@ public class ParticipantRestController {
 		return new ResponseEntity<Participant>(participant, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/{id}", method = RequestMethod.POST)
+	@RequestMapping(value = "", method = RequestMethod.POST)
 	public ResponseEntity<?> registerParticipant(@PathVariable("id") String login, @RequestBody Participant participant) {
 		Participant foundParticipant = participantService.findByLogin(login);
 		if (foundParticipant != null) {
